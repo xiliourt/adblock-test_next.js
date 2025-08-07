@@ -1,17 +1,27 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react'; // MODIFIED: Added useMemo
+import { useState, useCallback, useMemo } from 'react';
 import { getInitialState, Category, DomainStatus } from '@/lib/domains';
-import styles from './DomainTester.module.css'; // Import the CSS module
 
-// A small component to display the status indicator dot
+// A new StatusIndicator component using inline styles that leverage the new CSS variables
 const StatusIndicator = ({ status }: { status: DomainStatus['status'] }) => {
-  const statusClasses = {
-    pending: styles.statusPending,
-    reachable: styles.statusReachable,
-    blocked: styles.statusBlocked,
+  const statusColor = {
+    pending: 'var(--orange)', // Using CSS variables from your file
+    reachable: 'var(--green)',
+    blocked: 'var(--red)',
   };
-  return <div className={`${styles.statusIndicator} ${statusClasses[status]}`} />;
+
+  return (
+    <div
+      style={{
+        width: '12px',
+        height: '12px',
+        backgroundColor: statusColor[status],
+        borderRadius: '50%',
+        flexShrink: 0, // Prevents the dot from shrinking
+      }}
+    />
+  );
 };
 
 export default function DomainTester() {
@@ -29,7 +39,6 @@ export default function DomainTester() {
     0
   );
 
-  // NEW: Calculate the total number of blocked domains using useMemo for efficiency
   const blockedCount = useMemo(() => {
     return Object.values(domainData).reduce(
       (acc, services) =>
@@ -43,7 +52,6 @@ export default function DomainTester() {
     );
   }, [domainData]);
 
-  // NEW: Calculate the blockage percentage
   const blockedPercentage = totalDomains > 0 ? Math.round((blockedCount / totalDomains) * 100) : 0;
 
   const updateDomainStatus = useCallback((category: string, service: string, domainName: string, status: DomainStatus['status']) => {
@@ -80,9 +88,10 @@ export default function DomainTester() {
   const handleStartTest = async () => {
     setIsTesting(true);
     setTestedCount(0);
+    // Reset status to pending before starting
+    setDomainData(getInitialState());
 
     const allTestPromises = [];
-
     for (const categoryName in domainData) {
       for (const serviceName in domainData[categoryName]) {
         for (const domain of domainData[categoryName][serviceName]) {
@@ -101,56 +110,75 @@ export default function DomainTester() {
     setDomainData(getInitialState());
     setTestedCount(0);
     setIsTesting(false);
-  }
+  };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>DNS Reachability Tester</h1>
-        <p className={styles.description}>
+    <main className="cnt">
+      <div className="_ta-center">
+        <h2>DNS Reachability Tester</h2>
+        <p>
           This tool checks if your browser can reach common ad, tracking, and analytics domains. Red means blocked (good!), Green means reachable.
         </p>
-        <div className={styles.controls}>
+        <div className="_f-center">
           <button
             onClick={handleStartTest}
             disabled={isTesting}
-            className={styles.button}
+            className="btn btn-p"
           >
             {isTesting ? 'Testing...' : 'Start Test'}
           </button>
+          {/* Using type="reset" to leverage the red styling from your CSS */}
           <button
             onClick={handleReset}
             disabled={isTesting}
-            className={`${styles.button} ${styles.resetButton}`}
+            type="reset"
+            className="btn"
           >
             Reset
           </button>
         </div>
-        {/* MODIFIED: Added blocked score display */}
-        { (isTesting || testedCount > 0) && (
-          <div className={styles.progressContainer}>
-            <div className={styles.progressBar}>
-              <div className={styles.progressBarInner} style={{ width: `${(testedCount/totalDomains) * 100}%` }}></div>
+        
+        {(isTesting || testedCount > 0) && (
+          <div style={{ marginTop: '1.5rem', width: '100%' }}>
+            {/* Custom progress bar styled with CSS variables */}
+            <div style={{ backgroundColor: 'var(--bg3)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+                <div
+                    style={{
+                        width: `${(testedCount / totalDomains) * 100}%`,
+                        height: '10px',
+                        backgroundColor: 'var(--primary)',
+                        transition: 'width 0.3s ease-in-out',
+                    }}
+                />
             </div>
-            <p className={styles.progressText}>{testedCount} / {totalDomains} domains tested</p>
-            {/* NEW: Blocked score display */}
-            <p className={styles.progressText}>
+            <p style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }}>{testedCount} / {totalDomains} domains tested</p>
+            <p>
               <strong>Blocked:</strong> {blockedCount} / {totalDomains} ({blockedPercentage}%)
             </p>
           </div>
         )}
       </div>
 
-      <div className={styles.grid}>
+      <div className="grid _mt-1">
         {Object.entries(domainData).map(([categoryName, services]) => (
-          <div key={categoryName} className={styles.card}>
-            <h2 className={styles.categoryTitle}>{categoryName}</h2>
+          <div key={categoryName} className="card">
+            <h3>{categoryName}</h3>
             {Object.entries(services).map(([serviceName, domains]) => (
-              <div key={serviceName} className={styles.service}>
-                <h3 className={styles.serviceTitle}>{serviceName}</h3>
-                <ul className={styles.domainList}>
+              <div key={serviceName}>
+                <h5>{serviceName}</h5>
+                {/* Default UL styling from your CSS is already flex-column */}
+                <ul>
                   {domains.map((domain) => (
-                    <li key={domain.name} className={styles.domainItem}>
+                    <li
+                      key={domain.name}
+                      // Using inline styles for flex layout of the list item
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.2rem 0'
+                      }}
+                    >
                       <StatusIndicator status={domain.status} />
                       <span>{domain.name}</span>
                     </li>
@@ -161,6 +189,6 @@ export default function DomainTester() {
           </div>
         ))}
       </div>
-    </div>
+    </main>
   );
 }
