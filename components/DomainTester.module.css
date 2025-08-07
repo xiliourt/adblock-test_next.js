@@ -1,234 +1,251 @@
-/* ============================================================ */
-/* AdblockTest.module.css                                       */
-/* ============================================================ */
+'use client';
 
-/* ... (root, pageLayout, sidebar, etc. styles are unchanged) ... */
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { getInitialState, Category, DomainStatus } from '@/lib/domains';
+import styles from './AdblockTest.module.css'; // Import the CSS module
 
-.pageLayout {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 2rem;
-  color: var(--text-primary);
-  max-width: 1400px;
-  margin: 2rem auto;
-  padding: 1rem;
-}
+// ============================================================================
+//  ICON COMPONENTS
+// ============================================================================
+const CheckIcon = () => <span className={styles.icon}>✔</span>;
+const CrossIcon = () => <span className={styles.icon}>✗</span>;
+const PendingIcon = () => <span className={styles.icon}>...</span>;
 
-/* --- Sidebar (Left Column) --- */
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
+// ============================================================================
+//  UI SUB-COMPONENTS
+// ============================================================================
 
-.resultsContainer,
-.actionsContainer,
-.infoContainer {
-  background-color: var(--container-color);
-  border: 1px solid var(--container-border);
-  border-radius: 12px;
-  padding: 1.5rem;
-}
+const ResultsDonutChart = ({
+  percentage,
+  blockedCount,
+  notBlockedCount,
+}: {
+  percentage: number;
+  blockedCount: number;
+  notBlockedCount: number;
+}) => {
+  const
+ 
+radius = 60;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (percentage / 100) * circumference;
 
-.donutChart {
-  position: relative;
-  width: 150px;
-  height: 150px;
-  margin: 0 auto;
-}
-.donutChart svg {
-  transform: rotate(-90deg);
-  width: 100%;
-  height: 100%;
-}
-.donutTrack {
-  stroke: var(--container-border);
-}
-.donutIndicator {
-  stroke: var(--accent-green);
-  stroke-linecap: round;
-  transition: stroke-dashoffset 1s ease-out;
-}
-.chartText {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-}
-.chartPercentage {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: var(--text-primary);
-}
-.chartLabel {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-.resultCounts {
-  display: flex;
-  justify-content: center;
-  gap: 1.5rem;
-  margin-top: 1.5rem;
-  text-align: center;
-}
-.resultCounts > div > span {
-  display: block;
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-.blockedCount {
-  color: var(--accent-green);
-}
-.notBlockedCount {
-  color: var(--accent-red);
-}
+  return (
+    <div className={styles.resultsContainer}>
+      <div className={styles.donutChart}>
+        <svg>
+          <circle className={styles.donutTrack} cx="75" cy="75" r={radius} fill="transparent" strokeWidth="15" />
+          <circle
+            className={styles.donutIndicator}
+            cx="75" cy="75" r={radius} fill="transparent" strokeWidth="15"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+          />
+        </svg>
+        <div className={styles.chartText}>
+          <div className={styles.chartPercentage}>{percentage}%</div>
+          <div className={styles.chartLabel}>Blocked</div>
+        </div>
+      </div>
+      <div className={styles.resultCounts}>
+        <div>
+          <span className={styles.blockedCount}>{blockedCount}</span>
+          <div className={styles.chartLabel}>Blocked</div>
+        </div>
+        <div>
+          <span className={styles.notBlockedCount}>{notBlockedCount}</span>
+          <div className={styles.chartLabel}>Not Blocked</div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-.retestButton {
-  width: 100%;
-  padding: 0.8rem;
-  font-size: 1rem;
-  font-weight: bold;
-  color: white;
-  background-color: var(--accent-green);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-.retestButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+const InfoAccordion = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <details className={styles.infoAccordion}>
+    <summary>{title}</summary>
+    <div>{children}</div>
+  </details>
+);
 
-.infoAccordion {
-  border-bottom: 1px solid var(--container-border);
-}
-.infoAccordion:last-child {
-  border-bottom: none;
-}
-.infoAccordion summary {
-  padding: 0.8rem 0;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  list-style: none; /* Hide default marker */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.infoAccordion summary::-webkit-details-marker {
-  display: none; /* Chrome */
-}
-.infoAccordion summary::after {
-  content: '►';
-  font-size: 0.8em;
-  transition: transform 0.2s;
-}
-.infoAccordion[open] summary::after {
-  transform: rotate(90deg);
-}
-.infoAccordion p, .infoAccordion a {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  margin-top: 0;
-}
-.infoAccordion a {
-  color: var(--accent-green);
-  text-decoration: none;
-}
+const DomainListItem = ({ domain }: { domain: DomainStatus }) => {
+  let icon;
+  // MODIFIED: This class is now only for text/icon color
+  let statusClass = '';
 
-/* --- Main Content (Right Column) --- */
-.mainContent {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
+  switch (domain.status) {
+    case 'blocked':
+      icon = <CheckIcon />;
+      statusClass = styles.blocked;
+      break;
+    case 'reachable':
+      icon = <CrossIcon />;
+      statusClass = styles.reachable;
+      break;
+    default:
+      icon = <PendingIcon />;
+      break;
+  }
+  return (
+    <li className={`${styles.domainItem} ${statusClass}`}>
+      {icon}
+      <span>{domain.name}</span>
+    </li>
+  );
+};
 
-.categoryCard {
-  background-color: var(--container-color);
-  border: 1px solid var(--container-border);
-  border-radius: 12px;
-  padding: 1.5rem;
-  transition: border-color 0.5s ease-in-out;
-  /* REMOVED: .allBlocked and .someFailed border-color styles no longer needed here */
-}
+// ============================================================================
+//  MAIN COMPONENT
+// ============================================================================
 
-.categoryTitle {
-  margin-top: 0;
-  margin-bottom: 1.5rem;
-  font-size: 1.5rem;
-}
+export default function DomainTester() {
+  const [domainData, setDomainData] = useState<Category>(getInitialState);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testedCount, setTestedCount] = useState(0);
 
-.servicesContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
+  const totalDomains = useMemo(() => Object.values(domainData).reduce(
+    (acc, services) => acc + Object.values(services).reduce((sAcc, d) => sAcc + d.length, 0), 0
+  ), [domainData]);
 
-.serviceGroup {
-  flex: 1 1 300px;
-  min-width: 280px;
-  margin-bottom: 1rem;
-  padding: 1rem;
-  border-radius: 12px;
-  /* MODIFIED: Added default background and transition */
-  background-color: var(--container-border);
-  transition: background-color 0.5s ease-in-out;
-}
+  const { blockedCount, notBlockedCount } = useMemo(() => {
+    let blocked = 0;
+    let reachable = 0;
+    for (const category in domainData) {
+      for (const service in domainData[category]) {
+        for (const domain of domainData[category][service]) {
+          if (domain.status === 'blocked') blocked++;
+          else if (domain.status === 'reachable') reachable++;
+        }
+      }
+    }
+    return { blockedCount: blocked, notBlockedCount: reachable };
+  }, [domainData]);
 
-/* NEW: Classes to color the service group background */
-.serviceGroup.serviceGroupBlocked {
-  background-color: #1a3e29; /* Dark green */
-}
-.serviceGroup.serviceGroupFailed {
-  background-color: #4a2123; /* Dark red */
-}
+  const blockedPercentage = totalDomains > 0 ? Math.round((blockedCount / totalDomains) * 100) : 0;
 
+  const updateDomainStatus = useCallback((category: string, service: string, domainName: string, status: DomainStatus['status']) => {
+    setDomainData(prevData => {
+      const newData = { ...prevData };
+      const domainIndex = newData[category][service].findIndex(d => d.name === domainName);
+      if (domainIndex !== -1) {
+        newData[category][service][domainIndex] = { ...newData[category][service][domainIndex], status };
+      }
+      return newData;
+    });
+    setTestedCount(prev => prev + 1);
+  }, []);
 
-.serviceTitle {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
-  padding-left: 0.5rem;
-}
-.domainList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.domainItem {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.2rem 0; /* Adjusted padding */
-  border-radius: 8px;
-  font-family: var(--font-mono);
-  font-size: 0.9rem;
-  /* REMOVED: Background color is now inherited from parent */
-}
+  const checkDomain = async (domain: string): Promise<DomainStatus['status']> => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    try {
+      await fetch(`https://${domain}`, { method: 'HEAD', mode: 'no-cors', signal: controller.signal, cache: 'no-store' });
+      clearTimeout(timeoutId);
+      return 'reachable';
+    } catch (error) {
+      clearTimeout(timeoutId);
+      return 'blocked';
+    }
+  };
 
-/* MODIFIED: These classes now only control text/icon color */
-.domainItem.blocked {
-  color: var(--accent-green);
-}
-.domainItem.reachable {
-  color: var(--accent-red);
-}
-.domainItem .icon {
-  font-size: 1.2em;
-  line-height: 1;
-}
+  const handleStartTest = async () => {
+    setDomainData(getInitialState());
+    setTestedCount(0);
+    setIsTesting(true);
 
-.loadingText {
-  text-align: center;
-  color: var(--text-secondary);
-  font-size: 1.2rem;
-  padding: 4rem;
+    const allTestPromises: Promise<void>[] = [];
+    for (const categoryName in domainData) {
+        for (const serviceName in domainData[categoryName]) {
+            for (const domain of domainData[categoryName][serviceName]) {
+                const promise = checkDomain(domain.name).then(status => {
+                    updateDomainStatus(categoryName, serviceName, domain.name, status);
+                });
+                allTestPromises.push(promise);
+            }
+        }
+    }
+    await Promise.all(allTestPromises);
+    setIsTesting(false);
+  };
+
+  const testIsFinished = !isTesting && testedCount === totalDomains && totalDomains > 0;
+
+  return (
+    <div className={styles.pageLayout}>
+      {/* --- Sidebar (Left Column) --- */}
+      <aside className={styles.sidebar}>
+        {testIsFinished ? (
+          <ResultsDonutChart
+            percentage={blockedPercentage}
+            blockedCount={blockedCount}
+            notBlockedCount={notBlockedCount}
+          />
+        ) : (
+          <div className={styles.resultsContainer}>
+             <h3 style={{textAlign: 'center', marginTop: 0}}>Ad Block Test</h3>
+             <p style={{textAlign: 'center', color: 'var(--text-secondary)'}}>
+                {isTesting ? `Testing ${testedCount}/${totalDomains}...` : "Press 'Re-test' to begin."}
+             </p>
+          </div>
+        )}
+
+        <div className={styles.actionsContainer}>
+          <button onClick={handleStartTest} disabled={isTesting} className={styles.retestButton}>
+            {isTesting ? 'Testing...' : 'Re-test'}
+          </button>
+        </div>
+
+        <div className={styles.infoContainer}>
+          <InfoAccordion title="Compatibility">
+            <p>
+              The test may not work as expected with some browser/blocker combinations. For example, the uBlock Origin extension can sometimes break the final result. To fix it, add adblock.turtlecute.org as an exception in uBlock rules.
+            </p>
+          </InfoAccordion>
+          <InfoAccordion title="FAQ">
+            <p>
+              Common questions and answers about why certain tests might fail or how the tool works. For example, why the cosmetic filter test might fail.
+            </p>
+          </InfoAccordion>
+          <InfoAccordion title="About">
+             <p>
+               Are you interested in privacy guides and contents? Check out this <a href="#" target="_blank" rel="noopener noreferrer">Privacy Activist Kit</a>!
+             </p>
+          </InfoAccordion>
+        </div>
+      </aside>
+
+      {/* --- Main Content (Right Column) --- */}
+      <main className={styles.mainContent}>
+        {Object.entries(domainData).map(([categoryName, services]) => (
+          // MODIFIED: No longer needs dynamic class
+          <div key={categoryName} className={styles.categoryCard}>
+            <h2 className={styles.categoryTitle}>{categoryName}</h2>
+            <div className={styles.servicesContainer}>
+              {Object.entries(services).map(([serviceName, domains]) => {
+                // NEW: Logic is now here, at the service group level
+                const isGroupTested = domains.every(d => d.status !== 'pending');
+                let groupStatusClass = '';
+                if (isGroupTested) {
+                  const hasFailures = domains.some(d => d.status === 'reachable');
+                  groupStatusClass = hasFailures ? styles.serviceGroupFailed : styles.serviceGroupBlocked;
+                }
+
+                return (
+                  // MODIFIED: Dynamic class is applied here now
+                  <div key={serviceName} className={`${styles.serviceGroup} ${groupStatusClass}`}>
+                    <h3 className={styles.serviceTitle}>{serviceName}</h3>
+                    <ul className={styles.domainList}>
+                      {domains.map(domain => (
+                        <DomainListItem key={domain.name} domain={domain} />
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </main>
+    </div>
+  );
 }
