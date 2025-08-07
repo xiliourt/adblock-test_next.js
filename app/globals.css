@@ -367,3 +367,72 @@ button[type='reset'].btn {
   background: rgba(0, 0, 0, 0);
   transform: translate(-78%, 50%);
 }
+
+/* --- ADD THIS TO YOUR GLOBALS.CSS & REMOVE THE OLD .badges STYLES --- */
+
+.service-group {
+    padding: 0.75rem;
+    border-radius: var(--radius);
+    background-color: var(--bg3);
+    transition: background-color 0.3s ease-in-out;
+}
+
+/* Style for when all domains in a service group are blocked */
+.service-group-blocked {
+    background-color: var(--green-h);
+}
+
+.service-group h5 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--brd);
+    padding-bottom: 0.5rem;
+}
+
+[data-theme='dark'] .service-group-blocked h5 {
+    border-bottom-color: var(--green-d);
+}
+
+.domain-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.domain-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-family: monospace;
+}
+
+.domain-item .icon-wrapper {
+    display: inline-flex;
+    align-items: center;
+    font-size: 1.1em;
+}
+
+/* Status Colors */
+.domain-item.status-success {
+    color: var(--green-d);
+}
+.domain-item.status-fail {
+    color: var(--red-d);
+}
+.domain-item.status-pending {
+    color: var(--brd);
+}
+
+[data-theme='dark'] .domain-item.status-success {
+    color: var(--green-l);
+}
+[data-theme='dark'] .domain-item.status-fail {
+    color: var(--red-l);
+}
+[data-theme='dark'] .domain-item.status-pending {
+    color: var(--gray-d);
+}
