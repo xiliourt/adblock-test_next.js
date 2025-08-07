@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { getInitialState, Category, DomainStatus } from '@/lib/domains';
-import styles from './DomainTester.module.css'; // Import the new CSS module
+import styles from './AdblockTest.module.css'; // Import the CSS module
 
 // ============================================================================
 //  ICON COMPONENTS
@@ -12,7 +12,7 @@ const CrossIcon = () => <span className={styles.icon}>✗</span>;
 const PendingIcon = () => <span className={styles.icon}>...</span>;
 
 // ============================================================================
-//  NEW UI SUB-COMPONENTS
+//  UI SUB-COMPONENTS
 // ============================================================================
 
 const ResultsDonutChart = ({
@@ -197,17 +197,17 @@ export default function DomainTester() {
         <div className={styles.infoContainer}>
           <InfoAccordion title="Compatibility">
             <p>
-              [cite_start]The test may not work as expected with some browser/blocker combinations. [cite: 14] [cite_start]For example, the uBlock Origin extension can sometimes break the final result. [cite: 15] [cite_start]To fix it, add adblock.turtlecute.org as an exception in uBlock rules. [cite: 16]
+              The test may not work as expected with some browser/blocker combinations. For example, the uBlock Origin extension can sometimes break the final result. To fix it, add adblock.turtlecute.org as an exception in uBlock rules.
             </p>
           </InfoAccordion>
           <InfoAccordion title="FAQ">
             <p>
-              Common questions and answers about why certain tests might fail or how the tool works. [cite_start]For example, why the cosmetic filter test might fail. [cite: 21]
+              Common questions and answers about why certain tests might fail or how the tool works. For example, why the cosmetic filter test might fail.
             </p>
           </InfoAccordion>
           <InfoAccordion title="About">
              <p>
-               Are you interested in privacy guides and contents? [cite_start]Check out this <a href="#" target="_blank" rel="noopener noreferrer">Privacy Activist Kit</a>! [cite: 18]
+               Are you interested in privacy guides and contents? Check out this <a href="#" target="_blank" rel="noopener noreferrer">Privacy Activist Kit</a>!
              </p>
           </InfoAccordion>
         </div>
@@ -215,21 +215,36 @@ export default function DomainTester() {
 
       {/* --- Main Content (Right Column) --- */}
       <main className={styles.mainContent}>
-        {Object.entries(domainData).map(([categoryName, services]) => (
-          <div key={categoryName} className={styles.categoryCard}>
-            <h2 className={styles.categoryTitle}>{categoryName}</h2>
-            {Object.entries(services).map(([serviceName, domains]) => (
-              <div key={serviceName} className={styles.serviceGroup}>
-                <h3 className={styles.serviceTitle}>{serviceName}</h3>
-                <ul className={styles.domainList}>
-                  {domains.map(domain => (
-                    <DomainListItem key={domain.name} domain={domain} />
-                  ))}
-                </ul>
+        {Object.entries(domainData).map(([categoryName, services]) => {
+          // NEW: Logic to determine the status of the entire category
+          const allDomainsInCategory = Object.values(services).flat();
+          const categoryIsTested = allDomainsInCategory.every(d => d.status !== 'pending');
+          let categoryStatusClass = '';
+
+          if (categoryIsTested) {
+            const hasFailures = allDomainsInCategory.some(d => d.status === 'reachable');
+            categoryStatusClass = hasFailures ? styles.someFailed : styles.allBlocked;
+          }
+
+          return (
+            <div key={categoryName} className={`${styles.categoryCard} ${categoryStatusClass}`}>
+              <h2 className={styles.categoryTitle}>{categoryName}</h2>
+              {/* NEW: Flex container for service groups */}
+              <div className={styles.servicesContainer}>
+                {Object.entries(services).map(([serviceName, domains]) => (
+                  <div key={serviceName} className={styles.serviceGroup}>
+                    <h3 className={styles.serviceTitle}>{serviceName}</h3>
+                    <ul className={styles.domainList}>
+                      {domains.map(domain => (
+                        <DomainListItem key={domain.name} domain={domain} />
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </main>
     </div>
   );
