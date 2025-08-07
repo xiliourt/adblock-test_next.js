@@ -1,0 +1,219 @@
+/* ============================================================ */
+/* NEW STYLESHEET: AdblockTest.module.css                      */
+/* Replace your existing component CSS with this file.          */
+/* ============================================================ */
+
+:root {
+  --bg-color: #1a1a1a;
+  --container-color: #2a2a2e;
+  --container-border: #3a3a3e;
+  --text-primary: #e1e1e1;
+  --text-secondary: #8e8e93;
+  --accent-green: #30d158;
+  --accent-red: #ff453a;
+  --font-mono: 'SF Mono', 'Menlo', 'Consolas', 'Courier New', monospace;
+}
+
+.pageLayout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 2rem;
+  color: var(--text-primary);
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+/* --- Sidebar (Left Column) --- */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.resultsContainer,
+.actionsContainer,
+.infoContainer {
+  background-color: var(--container-color);
+  border: 1px solid var(--container-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.donutChart {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto;
+}
+.donutChart svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+.donutTrack {
+  stroke: var(--container-border);
+}
+.donutIndicator {
+  stroke: var(--accent-green);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s ease-out;
+}
+.chartText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.chartPercentage {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--text-primary);
+}
+.chartLabel {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+.resultCounts {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  text-align: center;
+}
+.resultCounts > div > span {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+.blockedCount {
+  color: var(--accent-green);
+}
+.notBlockedCount {
+  color: var(--accent-red);
+}
+
+.retestButton {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  background-color: var(--accent-green);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.retestButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.infoAccordion {
+  border-bottom: 1px solid var(--container-border);
+}
+.infoAccordion:last-child {
+  border-bottom: none;
+}
+.infoAccordion summary {
+  padding: 0.8rem 0;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none; /* Hide default marker */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.infoAccordion summary::-webkit-details-marker {
+  display: none; /* Chrome */
+}
+.infoAccordion summary::after {
+  content: '►';
+  font-size: 0.8em;
+  transition: transform 0.2s;
+}
+.infoAccordion[open] summary::after {
+  transform: rotate(90deg);
+}
+.infoAccordion p, .infoAccordion a {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-top: 0;
+}
+.infoAccordion a {
+  color: var(--accent-green);
+  text-decoration: none;
+}
+
+/* --- Main Content (Right Column) --- */
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.categoryCard {
+  background-color: var(--container-color);
+  border: 1px solid var(--container-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+.categoryTitle {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.serviceGroup {
+  margin-bottom: 1rem;
+}
+.serviceTitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+}
+.domainList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.domainItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  background-color: var(--container-border);
+  transition: background-color 0.2s;
+}
+.domainItem.blocked {
+  background-color: #1a3e29; /* Dark green background */
+  color: var(--accent-green);
+}
+.domainItem.reachable {
+  background-color: #4a2123; /* Dark red background */
+  color: var(--accent-red);
+}
+.domainItem .icon {
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+.loadingText {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  padding: 4rem;
+}
