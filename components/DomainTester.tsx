@@ -193,6 +193,24 @@ export default function DomainTester() {
             {isTesting ? 'Testing...' : 'Re-test'}
           </button>
         </div>
+
+        <div className={styles.infoContainer}>
+          <InfoAccordion title="Compatibility">
+            <p>
+              The test may not work as expected with some browser/blocker combinations. For example, the uBlock Origin extension can sometimes break the final result. To fix it, add adblock.turtlecute.org as an exception in uBlock rules.
+            </p>
+          </InfoAccordion>
+          <InfoAccordion title="FAQ">
+            <p>
+              Common questions and answers about why certain tests might fail or how the tool works. For example, why the cosmetic filter test might fail.
+            </p>
+          </InfoAccordion>
+          <InfoAccordion title="About">
+             <p>
+               Are you interested in privacy guides and contents? Check out this <a href="#" target="_blank" rel="noopener noreferrer">Privacy Activist Kit</a>!
+             </p>
+          </InfoAccordion>
+        </div>
       </aside>
 
       {/* --- Main Content (Right Column) --- */}
