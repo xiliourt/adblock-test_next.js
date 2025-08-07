@@ -1,5 +1,16 @@
 /* app/globals.css */
 
+:root {
+  --bg-color: #1a1a1a;
+  --container-color: #2a2a2e;
+  --container-border: #3a3a3e;
+  --text-primary: #e1e1e1;
+  --text-secondary: #8e8e93;
+  --accent-green: #30d158;
+  --accent-red: #ff453a;
+  --font-mono: 'SF Mono', 'Menlo', 'Consolas', 'Courier New', monospace;
+}
+
 html,
 [data-theme='light'] {
   --blue: #0074d8;
