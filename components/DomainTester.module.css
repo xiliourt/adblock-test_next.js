@@ -145,14 +145,33 @@
   border: 1px solid var(--container-border);
   border-radius: 12px;
   padding: 1.5rem;
+  transition: border-color 0.5s ease-in-out;
 }
+/* NEW: Style for when all domains in a category are blocked */
+.categoryCard.allBlocked {
+  border-color: var(--accent-green);
+}
+/* NEW: Style for when any domain in a category is reachable */
+.categoryCard.someFailed {
+  border-color: var(--accent-red);
+}
+
 .categoryTitle {
   margin-top: 0;
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
 }
 
+/* NEW: Flex container for service groups */
+.servicesContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
 .serviceGroup {
+  flex: 1 1 300px; /* Flex-grow, flex-shrink, and basis */
+  min-width: 280px; /* Prevent from becoming too small */
   margin-bottom: 1rem;
 }
 .serviceTitle {
