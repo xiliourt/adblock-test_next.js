@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react'; // MODIFIED: Added useMemo
 import { getInitialState, Category, DomainStatus } from '@/lib/domains';
 import styles from './DomainTester.module.css'; // Import the CSS module
 
@@ -28,6 +28,23 @@ export default function DomainTester() {
       ),
     0
   );
+
+  // NEW: Calculate the total number of blocked domains using useMemo for efficiency
+  const blockedCount = useMemo(() => {
+    return Object.values(domainData).reduce(
+      (acc, services) =>
+        acc +
+        Object.values(services).reduce(
+          (serviceAcc, domains) =>
+            serviceAcc + domains.filter(d => d.status === 'blocked').length,
+          0
+        ),
+      0
+    );
+  }, [domainData]);
+
+  // NEW: Calculate the blockage percentage
+  const blockedPercentage = totalDomains > 0 ? Math.round((blockedCount / totalDomains) * 100) : 0;
 
   const updateDomainStatus = useCallback((category: string, service: string, domainName: string, status: DomainStatus['status']) => {
     setDomainData(prevData => {
@@ -79,7 +96,7 @@ export default function DomainTester() {
     await Promise.all(allTestPromises);
     setIsTesting(false);
   };
-  
+
   const handleReset = () => {
     setDomainData(getInitialState());
     setTestedCount(0);
@@ -94,28 +111,33 @@ export default function DomainTester() {
           This tool checks if your browser can reach common ad, tracking, and analytics domains. Red means blocked (good!), Green means reachable.
         </p>
         <div className={styles.controls}>
-            <button
-              onClick={handleStartTest}
-              disabled={isTesting}
-              className={styles.button}
-            >
-              {isTesting ? 'Testing...' : 'Start Test'}
-            </button>
-             <button
-              onClick={handleReset}
-              disabled={isTesting}
-              className={`${styles.button} ${styles.resetButton}`}
-            >
-              Reset
-            </button>
+          <button
+            onClick={handleStartTest}
+            disabled={isTesting}
+            className={styles.button}
+          >
+            {isTesting ? 'Testing...' : 'Start Test'}
+          </button>
+          <button
+            onClick={handleReset}
+            disabled={isTesting}
+            className={`${styles.button} ${styles.resetButton}`}
+          >
+            Reset
+          </button>
         </div>
+        {/* MODIFIED: Added blocked score display */}
         { (isTesting || testedCount > 0) && (
-            <div className={styles.progressContainer}>
-                <div className={styles.progressBar}>
-                    <div className={styles.progressBarInner} style={{ width: `${(testedCount/totalDomains) * 100}%` }}></div>
-                </div>
-                <p className={styles.progressText}>{testedCount} / {totalDomains} domains tested</p>
+          <div className={styles.progressContainer}>
+            <div className={styles.progressBar}>
+              <div className={styles.progressBarInner} style={{ width: `${(testedCount/totalDomains) * 100}%` }}></div>
             </div>
+            <p className={styles.progressText}>{testedCount} / {totalDomains} domains tested</p>
+            {/* NEW: Blocked score display */}
+            <p className={styles.progressText}>
+              <strong>Blocked:</strong> {blockedCount} / {totalDomains} ({blockedPercentage}%)
+            </p>
+          </div>
         )}
       </div>
 
