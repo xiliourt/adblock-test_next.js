@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { getInitialState, Category, DomainStatus } from '@/lib/domains';
-import styles from './AdblockTest.module.css'; // Import the new CSS module
+import styles from './DomainTester.module.css'; // Import the new CSS module
 
 // ============================================================================
 //  ICON COMPONENTS
