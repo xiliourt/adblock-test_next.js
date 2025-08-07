@@ -1,3 +1,9 @@
+/* ============================================================ */
+/* AdblockTest.module.css                                       */
+/* ============================================================ */
+
+/* ... (root, pageLayout, sidebar, etc. styles are unchanged) ... */
+
 .pageLayout {
   display: grid;
   grid-template-columns: 300px 1fr;
@@ -146,14 +152,7 @@
   border-radius: 12px;
   padding: 1.5rem;
   transition: border-color 0.5s ease-in-out;
-}
-/* NEW: Style for when all domains in a category are blocked */
-.categoryCard.allBlocked {
-  border-color: var(--accent-green);
-}
-/* NEW: Style for when any domain in a category is reachable */
-.categoryCard.someFailed {
-  border-color: var(--accent-red);
+  /* REMOVED: .allBlocked and .someFailed border-color styles no longer needed here */
 }
 
 .categoryTitle {
@@ -162,7 +161,6 @@
   font-size: 1.5rem;
 }
 
-/* NEW: Flex container for service groups */
 .servicesContainer {
   display: flex;
   flex-wrap: wrap;
@@ -170,10 +168,25 @@
 }
 
 .serviceGroup {
-  flex: 1 1 300px; /* Flex-grow, flex-shrink, and basis */
-  min-width: 280px; /* Prevent from becoming too small */
+  flex: 1 1 300px;
+  min-width: 280px;
   margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  /* MODIFIED: Added default background and transition */
+  background-color: var(--container-border);
+  transition: background-color 0.5s ease-in-out;
 }
+
+/* NEW: Classes to color the service group background */
+.serviceGroup.serviceGroupBlocked {
+  background-color: #1a3e29; /* Dark green */
+}
+.serviceGroup.serviceGroupFailed {
+  background-color: #4a2123; /* Dark red */
+}
+
+
 .serviceTitle {
   color: var(--text-secondary);
   font-size: 0.9rem;
@@ -188,25 +201,24 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.5rem;
 }
 .domainItem {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.6rem 1rem;
+  padding: 0.2rem 0; /* Adjusted padding */
   border-radius: 8px;
   font-family: var(--font-mono);
   font-size: 0.9rem;
-  background-color: var(--container-border);
-  transition: background-color 0.2s;
+  /* REMOVED: Background color is now inherited from parent */
 }
+
+/* MODIFIED: These classes now only control text/icon color */
 .domainItem.blocked {
-  background-color: #1a3e29; /* Dark green background */
   color: var(--accent-green);
 }
 .domainItem.reachable {
-  background-color: #4a2123; /* Dark red background */
   color: var(--accent-red);
 }
 .domainItem .icon {
